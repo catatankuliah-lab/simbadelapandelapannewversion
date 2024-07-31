@@ -1,0 +1,39 @@
+[{
+        "header": "Dashboard",
+        "items": [{
+            "text": "Dashboard",
+            "icon": "bx bx-home",
+            "available": true,
+            "link": "/",
+            "roles": ["admin", "user"]
+        }]
+    },
+    {
+        "header": "DOKUMEN",
+        "items": [{
+                "text": "WO",
+                "icon": "bx bx-folder",
+                "available": true,
+                "link": "/wo",
+                "roles": ["admin", "user"]
+            },
+            {
+                "text": "LO",
+                "icon": "bx bx-file",
+                "available": true,
+                "link": "/lo",
+                "roles": ["admin", "user"]
+            }
+        ]
+    },
+    {
+        "header": "MONITORING",
+        "items": [{
+            "text": "REALISASI",
+            "icon": "bx bx-folder",
+            "available": true,
+            "link": "/rekap",
+            "roles": ["admin", "user"]
+        }]
+    }
+]

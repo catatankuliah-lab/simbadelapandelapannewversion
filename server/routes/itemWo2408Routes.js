@@ -6,4 +6,6 @@ router.post('/add', itemWoController.addItemWo);
 
 router.get('/all', itemWoController.getAllItemWo);
 
+router.delete('/delete/:id', itemWoController.deleteItemWo);
+
 module.exports = router;

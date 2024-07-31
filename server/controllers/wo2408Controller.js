@@ -202,9 +202,30 @@ const getDetailsWO = async (req, res) => {
     }
 };
 
+const deleteWO = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const query = `DELETE FROM itemwo_2408 WHERE id_wo = :id`;
+        await sequelize.query(query, {
+            replacements: { id },
+            type: sequelize.QueryTypes.DELETE
+        });
+        const wo = await WO2408.findByPk(id);
+        if (!wo) {
+            return res.status(404).send('Item not found');
+        }
+        await wo.destroy();
+        res.status(200).send('Item deleted successfully');
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server Error');
+    }
+};
+
 module.exports = {
     addWo,
     updateWO,
     getAllWo,
-    getDetailsWO
+    getDetailsWO,
+    deleteWO
 };

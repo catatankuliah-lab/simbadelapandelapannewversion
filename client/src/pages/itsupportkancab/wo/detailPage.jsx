@@ -18,7 +18,7 @@ const DetailPage = ({ handleBackClick, id }) => {
     const [desaOption, setDesaOption] = useState([]);
     const [selectedDesa, setSelectedDesa] = useState(null);
     const [tonaseData, setTonaseData] = useState({});
-    const [data, setData] = useState({});
+    const [inputValues, setInputValues] = useState({});
     const [formData, setFormData] = useState({
         tanggal_wo: '',
         nomor_wo: '',
@@ -207,7 +207,7 @@ const DetailPage = ({ handleBackClick, id }) => {
     };
 
     const handleTonaseChange = (desaId, value) => {
-        setData(prevState => ({
+        setInputValues(prevState => ({
             ...prevState,
             [desaId]: {
                 tonase_desa_kelurahan: value,
@@ -218,17 +218,32 @@ const DetailPage = ({ handleBackClick, id }) => {
     };
 
     const handleSaveTonase = async (desaId) => {
-        const dataToSend = data[desaId];
-        console.log(dataToSend);
+        const dataToSend = inputValues[desaId];
         try {
             await axios.post('http://localhost:5050/api/itemwo2408/add', dataToSend);
             console.log('Data submitted successfully');
         } catch (error) {
             console.error('Error submitting data:', error);
         }
+        setInputValues(prevState => ({
+            ...prevState,
+            [desaId]: {
+                ...prevState[desaId],
+                tonase_desa_kelurahan: ''
+            }
+        }));
         await fetchWO();
     };
 
+    const handleDeleteItemWO = async (idItemWODelete) => {
+        try {
+            await axios.delete(`http://localhost:5050/api/itemwo2408/delete/${idItemWODelete}`);
+            console.log('Item deleted successfully');
+        } catch (error) {
+            console.error('Error deleting item:', error);
+        }
+        await fetchWO();
+    };
 
     if (!WO) {
         return <div>Loading...</div>;
@@ -349,8 +364,7 @@ const DetailPage = ({ handleBackClick, id }) => {
                                 <th style={{ width: "5px" }} >No</th>
                                 <th>Desa/Kelurahan</th>
                                 <th>Jumlah Alokasi</th>
-                                <th>Sisa Alokasi</th>
-                                <th>Action</th>
+                                <th style={{ width: "300px" }}></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -359,19 +373,17 @@ const DetailPage = ({ handleBackClick, id }) => {
                                     <td>{desa.no}</td>
                                     <td>{desa.nama_desa_kelurahan}</td>
                                     <td>{desa.jumlah_alokasi_desa}</td>
-                                    <td>{desa.jumlah_alokasi_desa_sisa}</td>
                                     <td>
-                                        <input
-                                            type="number"
-                                            onChange={(e) => handleTonaseChange(desa.id_desa_kelurahan, e.target.value)}
-                                            className="form-control form-control-sm"
-                                        />
-                                        <button
-                                            className="btn btn-primary btn-sm mt-2"
-                                            onClick={() => handleSaveTonase(desa.id_desa_kelurahan)}
-                                        >
-                                            Save
-                                        </button>
+                                        <div className="input-group">
+                                            <input
+                                                type="number"
+                                                value={inputValues[desa.id_desa_kelurahan]?.tonase_desa_kelurahan || ''}
+                                                onChange={(e) => handleTonaseChange(desa.id_desa_kelurahan, e.target.value)}
+                                                className="form-control"
+                                                aria-describedby="button-addon2"
+                                            />
+                                            <button className="btn btn-primary" type="button" id="button-addon2" onClick={() => handleSaveTonase(desa.id_desa_kelurahan)}>Tambah</button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -379,7 +391,7 @@ const DetailPage = ({ handleBackClick, id }) => {
                     </table>
                 </div>
             </div>
-            {/* <div className="col-md-12 mb-4 mb-md-0 mt-3">
+            <div className="col-md-12 mb-4 mb-md-0 mt-3">
                 <div className='table-responsive text-nowrap"'>
                     <table className="table" style={{ fontSize: "13px" }} >
                         <thead>
@@ -389,24 +401,26 @@ const DetailPage = ({ handleBackClick, id }) => {
                                 <th>Kecamatan</th>
                                 <th>Desa/Kelurahan</th>
                                 <th>Tonase</th>
-                                <th>Action</th>
+                                <th style={{ width: "140px" }} ></th>
                             </tr>
                         </thead>
                         <tbody>
                             {WO.item_wo_by_wo_2408.map((itemWo) => (
-                                <tr key={itemWo.id_wo}>
+                                <tr key={itemWo.desa_kelurahan.id_desa_kelurahan}>
                                     <td>{nomor++}</td>
                                     <td>{itemWo.desa_kelurahan.kecamatan.kabupaten_kota.nama_kabupaten_kota}</td>
                                     <td>{itemWo.desa_kelurahan.kecamatan.nama_kecamatan}</td>
                                     <td>{itemWo.desa_kelurahan.nama_desa_kelurahan}</td>
                                     <td>{itemWo.tonase_desa_kelurahan} Kg</td>
-                                    <td>{itemWo.status_wo}</td>
+                                    <td>
+                                        <button className="btn btn-danger w-100" type="button" onClick={() => handleDeleteItemWO(itemWo.id_item_wo)}>Hapus</button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
-            </div> */}
+            </div>
         </div>
     );
 };

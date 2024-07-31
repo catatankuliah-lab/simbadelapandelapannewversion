@@ -17,8 +17,6 @@ const addItemWo = async (req, res) => {
             id_desa_kelurahan,
             tonase_desa_kelurahan,
         });
-
-
         res.status(200).send(newItemWO);
     } catch (error) {
         console.error(req.body);

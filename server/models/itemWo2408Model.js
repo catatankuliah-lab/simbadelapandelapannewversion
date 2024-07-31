@@ -28,6 +28,12 @@ const ItemWo2408 = sequelize.define('itemwo_2408', {
     tonase_desa_kelurahan: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        defaultValue: 0,
+    },
+    tonase_desa_kelurahan_disalurkan: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
     },
     createdAt: {
         type: DataTypes.DATE,

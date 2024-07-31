@@ -226,6 +226,7 @@ const DetailPage = ({ handleBackClick, id }) => {
         } catch (error) {
             console.error('Error submitting data:', error);
         }
+        await fetchWO();
     };
 
 
@@ -285,15 +286,15 @@ const DetailPage = ({ handleBackClick, id }) => {
                         </div>
                         <div className="col-md-4 col-sm-12 mb-3">
                             <label htmlFor="total_tonase" className="form-label">Total Tonase</label>
-                            <input className="form-control" type="text" id="total_tonase" name="total_tonase" value={WO.total_tonase} readOnly />
+                            <input className="form-control" type="text" id="total_tonase" name="total_tonase" value={WO.totalTonaseDesaKelurahan + ' Kg'} readOnly />
                         </div>
                         <div className="col-md-4 col-sm-12 mb-3">
-                            <label htmlFor="tonase_tersalurkan" className="form-label">Tonase Tersalurkan</label>
-                            <input className="form-control" type="text" id="tonase_tersalurkan" name="tonase_tersalurkan" value={WO.item_wo.tonase_tersalurkan_wo} readOnly />
+                            <label htmlFor="disalurkan" className="form-label">Total Tonase Disalurkan</label>
+                            <input className="form-control" type="text" id="disalurkan" name="disalurkan" value={WO.totalTonaseDesaKelurahanDisalurkan + ' Kg'} readOnly />
                         </div>
                         <div className="col-md-4 col-sm-12 mb-3">
                             <label htmlFor="sisa_tonase" className="form-label">Sisa Tonase</label>
-                            <input className="form-control" type="text" id="sisa_tonase" name="sisa_tonase" value={WO.tonase_sisa_wo} readOnly />
+                            <input className="form-control" type="text" id="sisa_tonase" name="sisa_tonase" value={WO.totalTonaseDesaKelurahanSisa + ' Kg'} readOnly />
                         </div>
                         <div className="col-md-4 col-sm-12">
                             <label htmlFor="ase" className="form-label">Perubahan</label>
@@ -378,32 +379,34 @@ const DetailPage = ({ handleBackClick, id }) => {
                     </table>
                 </div>
             </div>
-            <div className="col-md-12 mb-4 mb-md-0 mt-3">
+            {/* <div className="col-md-12 mb-4 mb-md-0 mt-3">
                 <div className='table-responsive text-nowrap"'>
                     <table className="table" style={{ fontSize: "13px" }} >
                         <thead>
                             <tr>
-                                <th>NO</th>
-                                <th>ID WO</th>
-                                <th>Nomor WO</th>
+                                <th style={{ width: "5px" }} >No</th>
+                                <th>Kabupaten/Kota</th>
+                                <th>Kecamatan</th>
                                 <th>Desa/Kelurahan</th>
-                                <th>Status WO</th>
+                                <th>Tonase</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {WO.item_wo.map((itemWo) => (
+                            {WO.item_wo_by_wo_2408.map((itemWo) => (
                                 <tr key={itemWo.id_wo}>
                                     <td>{nomor++}</td>
-                                    <td>{itemWo.id_wo}</td>
-                                    <td>{itemWo.nomor_wo}</td>
+                                    <td>{itemWo.desa_kelurahan.kecamatan.kabupaten_kota.nama_kabupaten_kota}</td>
+                                    <td>{itemWo.desa_kelurahan.kecamatan.nama_kecamatan}</td>
                                     <td>{itemWo.desa_kelurahan.nama_desa_kelurahan}</td>
+                                    <td>{itemWo.tonase_desa_kelurahan} Kg</td>
                                     <td>{itemWo.status_wo}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </div> */}
         </div>
     );
 };

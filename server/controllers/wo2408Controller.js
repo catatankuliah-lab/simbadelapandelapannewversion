@@ -1,3 +1,5 @@
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../config/database");
 const Gudang = require('../models/gudangModel');
 const AdminKancab = require('../models/adminKancabModel');
 const WO2408 = require('../models/wo2408Model');
@@ -5,10 +7,10 @@ const KantorCabang = require('../models/kantorCabangModel');
 const User = require('../models/userModel');
 const HakAkses = require('../models/hakAksesModel');
 const Alokasi = require('../models/alokasiModel');
-const ItemWo = require('../models/itemWoModel');
+const ItemWo = require('../models/itemWo2408Model');
 const Kecamatan = require('../models/kecamatanModel');
 const Kabupaten = require('../models/kabupatenModel');
-const Desa = require('../models/desaModel');
+const Desa = require('../models/desa2048Model');
 const Provinsi = require('../models/provinsiModel');
 
 const addWo = async (req, res) => {
@@ -150,7 +152,7 @@ const getDetailsWO = async (req, res) => {
                 },
                 {
                     model: ItemWo,
-                    as: 'item_wo',
+                    as: 'item_wo_by_wo_2408',
                     include: [
                         {
                             model: Desa,
@@ -175,7 +177,25 @@ const getDetailsWO = async (req, res) => {
         if (!wo) {
             return res.status(404).json({ message: 'WO not found' });
         }
-        res.status(200).json(wo);
+        let totalTonaseDesaKelurahan = 0;
+        let totalTonaseDesaKelurahanDisalurkan = 0;
+        wo.item_wo_by_wo_2408.forEach(item => {
+            totalTonaseDesaKelurahan += item.tonase_desa_kelurahan;
+            totalTonaseDesaKelurahanDisalurkan += item.tonase_desa_kelurahan_disalurkan;
+        });
+        const totalTonaseDesaKelurahanSisa = totalTonaseDesaKelurahan - totalTonaseDesaKelurahanDisalurkan;
+        wo.totalTonaseDesaKelurahan = totalTonaseDesaKelurahan;
+        wo.totalTonaseDesaKelurahanDisalurkan = totalTonaseDesaKelurahanDisalurkan;
+        wo.totalTonaseDesaKelurahanSisa = totalTonaseDesaKelurahanSisa;
+
+        const response = {
+            ...wo.toJSON(),
+            totalTonaseDesaKelurahan,
+            totalTonaseDesaKelurahanDisalurkan,
+            totalTonaseDesaKelurahanSisa
+        };
+
+        res.status(200).json(response);
     } catch (error) {
         console.error(error);
         res.status(500).send('Server Error');

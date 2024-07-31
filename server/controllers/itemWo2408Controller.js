@@ -52,7 +52,24 @@ const getAllItemWo = async (req, res) => {
     }
 };
 
+const deleteItemWo = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const itemWO = await ItemWo.findByPk(id);
+        if (!itemWO) {
+            return res.status(404).send('Item not found');
+        }
+        await itemWO.destroy();
+        res.status(200).send('Item deleted successfully');
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server Error');
+    }
+};
+
+
 module.exports = {
     addItemWo,
     getAllItemWo,
+    deleteItemWo
 };

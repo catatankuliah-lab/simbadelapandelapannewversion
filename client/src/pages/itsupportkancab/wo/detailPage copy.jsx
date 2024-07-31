@@ -15,19 +15,22 @@ const DetailPage = ({ handleBackClick, id }) => {
     const [selectedKabupaten, setSelectedKabupaten] = useState(null);
     const [kecamatanOption, setKecamatanOption] = useState([]);
     const [selectedKecamatan, setSelectedKecamatan] = useState(null);
+    const [desaOption, setDesaOption] = useState([]);
+    const [selectedDesa, setSelectedDesa] = useState(null);
+    const [tonaseData, setTonaseData] = useState({});
+    const [inputValues, setInputValues] = useState({});
     const [formData, setFormData] = useState({
         tanggal_wo: '',
         nomor_wo: '',
-        id_wo: ''
+        id_wo: '',
     });
 
     let nomor = 1;
 
     const fetchWO = useCallback(async () => {
         try {
-            const response = await fetch(`http://localhost:5050/api/wo/details/${id}`);
+            const response = await fetch(`http://localhost:5050/api/wo2408/details/${id}`);
             const data = await response.json();
-            console.log(data);
             setWO(data);
             setSelectedAlokasi({ value: data.alokasi.id_alokasi, label: data.alokasi.bulan_alokasi + " " + data.alokasi.tahun_alokasi });
             setSelectedGudang({ value: data.gudang.id_gudang, label: data.gudang.nama_gudang });
@@ -36,6 +39,7 @@ const DetailPage = ({ handleBackClick, id }) => {
                 nomor_wo: data.nomor_wo,
                 tanggal_wo: data.tanggal_wo,
             });
+            console.log(data);
         } catch (error) {
             console.error('Error fetching data:', error);
         }
@@ -44,22 +48,6 @@ const DetailPage = ({ handleBackClick, id }) => {
     useEffect(() => {
         fetchWO();
     }, [fetchWO]);
-
-    useEffect(() => {
-        const fetchAlokasiOptions = async () => {
-            try {
-                const response = await axios.get('http://localhost:5050/api/alokasi/all');
-                const options = response.data.map(alokasi => ({
-                    value: alokasi.id_alokasi,
-                    label: `${alokasi.bulan_alokasi} ${alokasi.tahun_alokasi}`
-                }));
-                setAlokasiOption(options);
-            } catch (error) {
-                console.error('Error fetching Alokasi options:', error);
-            }
-        };
-        fetchAlokasiOptions();
-    }, []);
 
     useEffect(() => {
         const fetchGudangOptions = async () => {
@@ -135,9 +123,41 @@ const DetailPage = ({ handleBackClick, id }) => {
         }
     }, [selectedKabupaten]);
 
-    const handleAlokasiChange = (selectedOption) => {
-        setSelectedAlokasi(selectedOption);
-    };
+    useEffect(() => {
+        if (WO == null) {
+            console.clear();
+        } else {
+            let tabeldesa = "desa2408";
+            if (WO.alokasi.id_alokasi == 1) {
+                tabeldesa = "desa2408";
+            } else if (WO.alokasi.id_alokasi == 2) {
+                tabeldesa = "desa2410";
+            } else if (WO.alokasi.id_alokasi == 3) {
+                tabeldesa = "desa2412";
+            }
+            const fetchDesaOptions = async (kecamatanId) => {
+                try {
+                    const response = await axios.get(`http://localhost:5050/api/${tabeldesa}/${kecamatanId}`);
+                    const desaOptions = response.data.map((desa, index) => ({
+                        no: index + 1,
+                        id_desa_kelurahan: desa.id_desa_kelurahan,
+                        nama_desa_kelurahan: desa.nama_desa_kelurahan,
+                        jumlah_alokasi_desa: desa.jumlah_alokasi_desa,
+                        jumlah_alokasi_desa_sisa: desa.jumlah_alokasi_desa_sisa
+                    }));
+                    console.log(desaOptions);
+                    setDesaOption(desaOptions);
+                } catch (error) {
+                    console.error('Error fetching Desa options:', error);
+                }
+            };
+            if (selectedKecamatan) {
+                fetchDesaOptions(selectedKecamatan.value);
+            } else {
+                setDesaOption([]);
+            }
+        }
+    }, [selectedKecamatan, WO]);
 
     const handleGudangChange = (selectedOption) => {
         setSelectedGudang(selectedOption);
@@ -173,14 +193,12 @@ const DetailPage = ({ handleBackClick, id }) => {
         event.preventDefault();
         const dataToSubmit = {
             ...formData,
-            id_admin_kancab: 1,
             qr_wo: formData.nomor_wo.replace(/[ ,./]/g, ''),
-            id_alokasi: selectedAlokasi ? selectedAlokasi.value : null,
             id_gudang: selectedGudang ? selectedGudang.value : null
         };
         console.log(dataToSubmit);
         try {
-            await axios.put(`http://localhost:5050/api/wo/update/${formData.id_wo}`, dataToSubmit);
+            await axios.put(`http://localhost:5050/api/wo2408/update/${formData.id_wo}`, dataToSubmit);
             console.log('Data updated successfully');
             await fetchWO();
         } catch (error) {
@@ -188,6 +206,36 @@ const DetailPage = ({ handleBackClick, id }) => {
         }
     };
 
+    const handleTonaseChange = (desaId, value) => {
+        setInputValues(prevState => ({
+            ...prevState,
+            [desaId]: {
+                tonase_desa_kelurahan: value,
+                id_wo: formData.id_wo,
+                id_desa_kelurahan: desaId,
+            }
+        }));
+    };
+
+
+    const handleSaveTonase = async (desaId) => {
+        const dataToSend = inputValues[desaId];
+        try {
+            await axios.post('http://localhost:5050/api/itemwo2408/add', dataToSend);
+            console.log('Data submitted successfully');
+        } catch (error) {
+            console.error('Error submitting data:', error);
+        }
+        // Kosongkan input setelah data disimpan
+        setInputValues(prevState => ({
+            ...prevState,
+            [desaId]: {
+                ...prevState[desaId],
+                tonase_desa_kelurahan: ''
+            }
+        }));
+        await fetchWO();
+    };
 
     if (!WO) {
         return <div>Loading...</div>;
@@ -226,14 +274,7 @@ const DetailPage = ({ handleBackClick, id }) => {
                         </div>
                         <div className="col-md-4 col-sm-12 mb-3">
                             <label htmlFor="id_alokasi" className="form-label">Alokasi</label>
-                            <Select
-                                id="id_alokasi"
-                                name="id_alokasi"
-                                value={selectedAlokasi}
-                                onChange={handleAlokasiChange}
-                                options={alokasiOption}
-                                placeholder="Pilih Alokasi"
-                            />
+                            <input className="form-control text-uppercase" type="text" id="id_alokasi" name='id_alokasi' placeholder="Nomor Working Order" value={WO.alokasi.bulan_alokasi + ' ' + WO.alokasi.tahun_alokasi} readOnly required />
                         </div>
                         <div className="col-md-4 col-sm-12 mb-3">
                             <label htmlFor="id_gudang" className="form-label">Gudang</label>
@@ -252,15 +293,15 @@ const DetailPage = ({ handleBackClick, id }) => {
                         </div>
                         <div className="col-md-4 col-sm-12 mb-3">
                             <label htmlFor="total_tonase" className="form-label">Total Tonase</label>
-                            <input className="form-control" type="text" id="total_tonase" name="total_tonase" value={WO.total_tonase} readOnly />
+                            <input className="form-control" type="text" id="total_tonase" name="total_tonase" value={WO.totalTonaseDesaKelurahan + ' Kg'} readOnly />
                         </div>
                         <div className="col-md-4 col-sm-12 mb-3">
-                            <label htmlFor="tonase_tersalurkan" className="form-label">Tonase Tersalurkan</label>
-                            <input className="form-control" type="text" id="tonase_tersalurkan" name="tonase_tersalurkan" value={WO.item_wo.tonase_tersalurkan_wo} readOnly />
+                            <label htmlFor="disalurkan" className="form-label">Total Tonase Disalurkan</label>
+                            <input className="form-control" type="text" id="disalurkan" name="disalurkan" value={WO.totalTonaseDesaKelurahanDisalurkan + ' Kg'} readOnly />
                         </div>
                         <div className="col-md-4 col-sm-12 mb-3">
                             <label htmlFor="sisa_tonase" className="form-label">Sisa Tonase</label>
-                            <input className="form-control" type="text" id="sisa_tonase" name="sisa_tonase" value={WO.tonase_sisa_wo} readOnly />
+                            <input className="form-control" type="text" id="sisa_tonase" name="sisa_tonase" value={WO.totalTonaseDesaKelurahanSisa + ' Kg'} readOnly />
                         </div>
                         <div className="col-md-4 col-sm-12">
                             <label htmlFor="ase" className="form-label">Perubahan</label>
@@ -308,31 +349,68 @@ const DetailPage = ({ handleBackClick, id }) => {
                 </div>
             </div>
             <div className="col-md-12 mb-4 mb-md-0 mt-3">
-                <div className='table-responsive text-nowrap"'>
-                    <table className="table" style={{ fontSize: "13px" }} >
+                <div className='table-responsive text-nowrap'>
+                    <table className="table" style={{ fontSize: "13px" }}>
                         <thead>
                             <tr>
-                                <th>NO</th>
-                                <th>ID WO</th>
-                                <th>Nomor WO</th>
+                                <th style={{ width: "5px" }} >No</th>
                                 <th>Desa/Kelurahan</th>
-                                <th>Status WO</th>
+                                <th>Jumlah Alokasi</th>
+                                <th style={{ width: "300px" }}></th>
                             </tr>
                         </thead>
                         <tbody>
-                            {WO.item_wo.map((itemWo) => (
-                                <tr key={itemWo.id_wo}>
-                                    <td>{nomor++}</td>
-                                    <td>{itemWo.id_wo}</td>
-                                    <td>{itemWo.nomor_wo}</td>
-                                    <td>{itemWo.desa_kelurahan.nama_desa_kelurahan}</td>
-                                    <td>{itemWo.status_wo}</td>
+                            {desaOption.map(desa => (
+                                <tr key={desa.id_desa_kelurahan}>
+                                    <td>{desa.no}</td>
+                                    <td>{desa.nama_desa_kelurahan}</td>
+                                    <td>{desa.jumlah_alokasi_desa}</td>
+                                    <td>
+                                        <div className="input-group">
+                                            <input
+                                                type="number"
+                                                value={inputValues}
+                                                onChange={(e) => handleTonaseChange(desa.id_desa_kelurahan, e.target.value)}
+                                                className="form-control"
+                                                aria-describedby="button-addon2"
+                                            />
+                                            <button className="btn btn-primary" type="button" id="button-addon2" onClick={() => handleSaveTonase(desa.id_desa_kelurahan)}>Tambah</button>
+                                        </div>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
             </div>
+            {/* <div className="col-md-12 mb-4 mb-md-0 mt-3">
+                <div className='table-responsive text-nowrap"'>
+                    <table className="table" style={{ fontSize: "13px" }} >
+                        <thead>
+                            <tr>
+                                <th style={{ width: "5px" }} >No</th>
+                                <th>Kabupaten/Kota</th>
+                                <th>Kecamatan</th>
+                                <th>Desa/Kelurahan</th>
+                                <th>Tonase</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {WO.item_wo_by_wo_2408.map((itemWo) => (
+                                <tr key={itemWo.id_wo}>
+                                    <td>{nomor++}</td>
+                                    <td>{itemWo.desa_kelurahan.kecamatan.kabupaten_kota.nama_kabupaten_kota}</td>
+                                    <td>{itemWo.desa_kelurahan.kecamatan.nama_kecamatan}</td>
+                                    <td>{itemWo.desa_kelurahan.nama_desa_kelurahan}</td>
+                                    <td>{itemWo.tonase_desa_kelurahan} Kg</td>
+                                    <td>{itemWo.status_wo}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div> */}
         </div>
     );
 };

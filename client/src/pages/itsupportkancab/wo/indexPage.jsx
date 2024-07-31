@@ -20,6 +20,16 @@ const IndexWoPage = () => {
         setCurrentView('detail');
     };
 
+    const handleDeleteDataClick = async (id) => {
+        try {
+            await axios.delete(`http://localhost:5050/api/wo2408/delete/${id}`);
+            console.log('WO deleted successfully');
+        } catch (error) {
+            console.error('Error deleting WO:', error);
+        }
+        await fetchWO();
+    };
+
     const handleBackClick = () => {
         setCurrentView('index');
         fetchWO();
@@ -98,7 +108,7 @@ const IndexWoPage = () => {
                                 <div key={wo.id_wo} className="card accordion-item">
                                     <h2 className="accordion-header px-2" id={`heading${wo.id_wo}`}>
                                         <button type="button" className="accordion-button accordion-button-primary collapsed text-primary" data-bs-toggle="collapse" data-bs-target={`#accordion${wo.id_wo}`} aria-expanded="false" aria-controls={`accordion${wo.id_wo}`}>
-                                            {wo.tanggal_wo} | {wo.nomor_wo} | {wo.gudang.nama_gudang} | {wo.total_tonase} KPM
+                                            {wo.tanggal_wo} | {wo.nomor_wo} | {wo.gudang.nama_gudang}
                                         </button>
                                     </h2>
                                     <div id={`accordion${wo.id_wo}`} className="accordion-collapse collapse" data-bs-parent="#accordion_wo">
@@ -115,14 +125,12 @@ const IndexWoPage = () => {
                                                     <p style={{ marginBottom: "2px" }}>
                                                         GUDANG : {wo.gudang.nama_gudang}
                                                     </p>
-                                                    <p>
-                                                        {wo.total_tonase} KPM
-                                                    </p>
-                                                    <p className='' >
-                                                        <button className="btn btn-link p-0" onClick={() => handleEditDataClick(wo.id_wo)}>
-                                                            <i className="tf-icons bx bx-edit me-2"></i> DETAIL
-                                                        </button>
-                                                    </p>
+                                                    <button className="btn btn-link p-0" onClick={() => handleEditDataClick(wo.id_wo)}>
+                                                        <i className="tf-icons bx bx-edit me-2"></i> DETAIL
+                                                    </button>
+                                                    <button className="btn btn-link text-danger p-0 ms-3" onClick={() => handleDeleteDataClick(wo.id_wo)}>
+                                                        <i className="tf-icons bx bx-message-square-x me-2"></i> DELETE
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
